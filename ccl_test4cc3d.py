@@ -2,7 +2,6 @@ import cc3d
 import numpy as np
 import cupy as cp
 import pandas as pd
-import os
 from scipy.interpolate import griddata
 import datetime
 import math
@@ -39,9 +38,9 @@ with open('cc3d.csv', 'w') as newfile:
         points = partdividedbyPointZ[:, [6, 7]]
         alpah_liquid = partdividedbyPointZ[:, 1]
         V = partdividedbyPointZ[:, 0]
-        X = partdividedbyPointZ[:,6]
-        Y = partdividedbyPointZ[:,7]
-        Z = partdividedbyPointZ[:,5]
+        X = partdividedbyPointZ[:, 6]
+        Y = partdividedbyPointZ[:, 7]
+        Z = partdividedbyPointZ[:, 5]
         grid_x, grid_y = np.mgrid[xi:xx:gridvalue, yi:yx:gridvalue]
         grid_z = griddata(points, alpah_liquid, (grid_x, grid_y), method='nearest')
         grid_alpha = griddata(points, alpah_liquid, (grid_x, grid_y), method='nearest')
@@ -55,7 +54,7 @@ with open('cc3d.csv', 'w') as newfile:
 
         if num % 1000 == 0:
             print(datetime.datetime.now(), (num + 1) / 14297)
-        grid_z=cp.asarray(grid_z)
+        grid_z = cp.asarray(grid_z)
         if cp.sum(grid_z) == 0:
             print(n)
             n += 1
@@ -78,18 +77,18 @@ with open('cc3d.csv', 'w') as newfile:
                 # calculate delimeter
                 Vmatrix = cp.asarray(Vmatrix)
                 alphaMatrix = cp.asarray(alphaMatrix)
-                tmpMatrix = cp.asarray(labels_out==segid)
+                tmpMatrix = cp.asarray(labels_out == segid)
                 sumtmpMatrix = cp.multiply(Vmatrix, cp.multiply(alphaMatrix, tmpMatrix))
-                sumVolumn = cp.sum(sumtmpMatrix) # sum of Volumn
+                sumVolumn = cp.sum(sumtmpMatrix)  # sum of Volumn
                 sumVolumnDelimeter = math.pow(sumVolumn * 6 / np.pi, 1 / 3)
 
                 # coordinate
                 Xmatrix = cp.asarray(Xmatrix)
                 Ymatrix = cp.asarray(Ymatrix)
                 Zmatrix = cp.asarray(Zmatrix)
-                meanx = cp.sum(cp.multiply(Xmatrix,sumtmpMatrix))/sumVolumn
-                meany = cp.sum(cp.multiply(Ymatrix,sumtmpMatrix))/sumVolumn
-                meanz = cp.sum(cp.multiply(Zmatrix,sumtmpMatrix))/sumVolumn
+                meanx = cp.sum(cp.multiply(Xmatrix, sumtmpMatrix)) / sumVolumn
+                meany = cp.sum(cp.multiply(Ymatrix, sumtmpMatrix)) / sumVolumn
+                meanz = cp.sum(cp.multiply(Zmatrix, sumtmpMatrix)) / sumVolumn
                 # write into file
                 newfile.write(str(sumVolumnDelimeter)
                               + ',' + str(sumVolumn)

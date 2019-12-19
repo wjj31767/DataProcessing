@@ -1,116 +1,114 @@
-import cc3d
-import numpy as np
-
-import pandas as pd
-import os
-from scipy.interpolate import griddata
 import datetime
 import math
+import cc3d
+import numpy as np
+import pandas as pd
+from scipy.interpolate import griddata
 
-labelsIn = []
-VMatrix = []
-alphaMatrix = []
-Xmatrix = []
-Ymatrix = []
-Zmatrix = []
+LabelsInMatrix = []
+VolumnMatrix = []
+AlphaMatrix = []
+XMatrix = []
+YMatrix = []
+ZMatrix = []
 print(datetime.datetime.now())
 
 boxTextReadFromPandas = pd.read_csv('boxTest.csv')
 
-xi = boxTextReadFromPandas['Points:1'].min()
-xx = boxTextReadFromPandas['Points:1'].max()
-yi = boxTextReadFromPandas['Points:2'].min()
-yx = boxTextReadFromPandas['Points:2'].max()
+XGlobalMin = boxTextReadFromPandas['Points:1'].min()
+XGlobalMAX = boxTextReadFromPandas['Points:1'].max()
+YGlobalMIN = boxTextReadFromPandas['Points:2'].min()
+YGlobalMAX = boxTextReadFromPandas['Points:2'].max()
 
-print(xi, xx, yi, yx)
+print(XGlobalMin, XGlobalMAX, YGlobalMIN, YGlobalMAX)
 
-Thread_value = 0.01
-gridvalue = 1e-4
+ThreadValue = 0.01
+GridValue = 1e-4
 
-with open('cc3d.csv', 'w') as newfile:
-    newfile.write("delimeter,Volumn,meanx,meany,meanz\n")
+with open('cc3d.csv', 'w') as NewFile:
+    NewFile.write("delimeter,Volumn,MeanX,MeanY,MeanZ\n")
 
     n = 0
 
-    for num, partdividedbyPointZ in enumerate(boxTextReadFromPandas.groupby("Points:0")):
-        # print(num,partdividedbyPointZ[0])
-        partdividedbyPointZ = partdividedbyPointZ[1].to_numpy()
+    for num, DividedByPointZGroup in enumerate(boxTextReadFromPandas.groupby("Points:0")):
+        # print(num,DividedByPointZGroup[0])
+        DividedByPointZGroup = DividedByPointZGroup[1].to_numpy()
 
-        points = partdividedbyPointZ[:, [6, 7]]
-        alpah_liquid = partdividedbyPointZ[:, 1]
-        V = partdividedbyPointZ[:, 0]
-        X = partdividedbyPointZ[:,6]
-        Y = partdividedbyPointZ[:,7]
-        Z = partdividedbyPointZ[:,5]
-        grid_x, grid_y = np.mgrid[xi:xx:gridvalue, yi:yx:gridvalue]
-        grid_z = griddata(points, alpah_liquid, (grid_x, grid_y), method='nearest')
-        grid_alpha = griddata(points, alpah_liquid, (grid_x, grid_y), method='nearest')
-        grid_V = griddata(points, V, (grid_x, grid_y), method='nearest')
-        grid_corx = griddata(points, X, (grid_x, grid_y), method='nearest')
-        grid_cory = griddata(points, Y, (grid_x, grid_y), method='nearest')
-        grid_corz = griddata(points, Z, (grid_x, grid_y), method='nearest')
-        grid_z[grid_z < Thread_value] = 0
-        grid_z[grid_z >= Thread_value] = 1
-        grid_z = grid_z.astype(np.int32)
+        Points = DividedByPointZGroup[:, [6, 7]]
+        AlphaLiquid = DividedByPointZGroup[:, 1]
+        V = DividedByPointZGroup[:, 0]
+        X = DividedByPointZGroup[:, 6]
+        Y = DividedByPointZGroup[:, 7]
+        Z = DividedByPointZGroup[:, 5]
+        GridX, GridY = np.mgrid[XGlobalMin:XGlobalMAX:GridValue, YGlobalMIN:YGlobalMAX:GridValue]
+        GridZ = griddata(Points, AlphaLiquid, (GridX, GridY), method='nearest')
+        GridAlpha = griddata(Points, AlphaLiquid, (GridX, GridY), method='nearest')
+        GridVolumn = griddata(Points, V, (GridX, GridY), method='nearest')
+        GridCoordinateX = griddata(Points, X, (GridX, GridY), method='nearest')
+        GridCoordinateY = griddata(Points, Y, (GridX, GridY), method='nearest')
+        GridCoordinateZ = griddata(Points, Z, (GridX, GridY), method='nearest')
+        GridZ[GridZ < ThreadValue] = 0
+        GridZ[GridZ >= ThreadValue] = 1
+        GridZ = GridZ.astype(np.int32)
 
         if num % 1000 == 0:
             print(datetime.datetime.now(), (num + 1) / 14297)
-        grid_z=np.asarray(grid_z)
-        if np.sum(grid_z) == 0:
+        GridZ = np.asarray(GridZ)
+        if np.sum(GridZ) == 0:
             print(n)
             n += 1
 
-            labelsIn = np.asarray(labelsIn)
+            LabelsInMatrix = np.asarray(LabelsInMatrix)
 
-            if np.sum(labelsIn) == 0:
-                labelsIn = []
-                VMatrix = []
-                alphaMatrix = []
-                Xmatrix = []
-                Ymatrix = []
-                Zmatrix = []
+            if np.sum(LabelsInMatrix) == 0:
+                LabelsInMatrix = []
+                VolumnMatrix = []
+                AlphaMatrix = []
+                XMatrix = []
+                YMatrix = []
+                ZMatrix = []
                 continue
 
-            # VMatrix = np.power(np.asarray(VMatrix),1/3)
-            labels_out = cc3d.connected_components(labelsIn)
-            N = np.max(labels_out)
+            # VolumnMatrix = np.power(np.asarray(VolumnMatrix),1/3)
+            LabelsOutMatrix = cc3d.connected_components(LabelsInMatrix)
+            N = np.max(LabelsOutMatrix)
             for segid in range(1, N + 1):
                 # calculate delimeter
-                VMatrix = np.asarray(VMatrix)
-                alphaMatrix = np.asarray(alphaMatrix)
-                tmpMatrix = np.asarray(labels_out==segid)
-                sumtmpMatrix = np.multiply(VMatrix, np.multiply(alphaMatrix, tmpMatrix))
-                sumVolumn = np.sum(sumtmpMatrix) # sum of Volumn
+                VolumnMatrix = np.asarray(VolumnMatrix)
+                AlphaMatrix = np.asarray(AlphaMatrix)
+                tmpMatrix = np.asarray(LabelsOutMatrix == segid)
+                sumtmpMatrix = np.multiply(VolumnMatrix, np.multiply(AlphaMatrix, tmpMatrix))
+                sumVolumn = np.sum(sumtmpMatrix)  # sum of Volumn
                 sumVolumnDelimeter = math.pow(sumVolumn * 6 / np.pi, 1 / 3)
 
                 # coordinate
-                Xmatrix = np.asarray(Xmatrix)
-                Ymatrix = np.asarray(Ymatrix)
-                Zmatrix = np.asarray(Zmatrix)
-                meanx = np.sum(np.multiply(Xmatrix,sumtmpMatrix))/sumVolumn
-                meany = np.sum(np.multiply(Ymatrix,sumtmpMatrix))/sumVolumn
-                meanz = np.sum(np.multiply(Zmatrix,sumtmpMatrix))/sumVolumn
+                XMatrix = np.asarray(XMatrix)
+                YMatrix = np.asarray(YMatrix)
+                ZMatrix = np.asarray(ZMatrix)
+                MeanX = np.sum(np.multiply(XMatrix, sumtmpMatrix)) / sumVolumn
+                MeanY = np.sum(np.multiply(YMatrix, sumtmpMatrix)) / sumVolumn
+                MeanZ = np.sum(np.multiply(ZMatrix, sumtmpMatrix)) / sumVolumn
                 # write into file
-                newfile.write(str(sumVolumnDelimeter)
+                NewFile.write(str(sumVolumnDelimeter)
                               + ',' + str(sumVolumn)
-                              + ',' + str(meanx)
-                              + ',' + str(meany)
-                              + ',' + str(meanz)
+                              + ',' + str(MeanX)
+                              + ',' + str(MeanY)
+                              + ',' + str(MeanZ)
                               + '\n')
 
-            labels_out = []
-            labelsIn = []
-            alphaMatrix = []
-            VMatrix = []
-            Xmatrix = []
-            Ymatrix = []
-            Zmatrix = []
+            LabelsOutMatrix = []
+            LabelsInMatrix = []
+            AlphaMatrix = []
+            VolumnMatrix = []
+            XMatrix = []
+            YMatrix = []
+            ZMatrix = []
         else:
-            labelsIn.append(grid_z.tolist())
-            alphaMatrix.append(grid_alpha.tolist())
-            VMatrix.append(grid_V.tolist())
-            Xmatrix.append(grid_corx.tolist())
-            Ymatrix.append(grid_cory.tolist())
-            Zmatrix.append(grid_corz.tolist())
+            LabelsInMatrix.append(GridZ.tolist())
+            AlphaMatrix.append(GridAlpha.tolist())
+            VolumnMatrix.append(GridVolumn.tolist())
+            XMatrix.append(GridCoordinateX.tolist())
+            YMatrix.append(GridCoordinateY.tolist())
+            ZMatrix.append(GridCoordinateZ.tolist())
 
 print(datetime.datetime.now())

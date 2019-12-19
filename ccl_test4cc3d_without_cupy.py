@@ -7,8 +7,8 @@ from scipy.interpolate import griddata
 import datetime
 import math
 
-labels_in = []
-Vmatrix = []
+labelsIn = []
+VMatrix = []
 alphaMatrix = []
 Xmatrix = []
 Ymatrix = []
@@ -60,26 +60,26 @@ with open('cc3d.csv', 'w') as newfile:
             print(n)
             n += 1
 
-            labels_in = np.asarray(labels_in)
+            labelsIn = np.asarray(labelsIn)
 
-            if np.sum(labels_in) == 0:
-                labels_in = []
-                Vmatrix = []
+            if np.sum(labelsIn) == 0:
+                labelsIn = []
+                VMatrix = []
                 alphaMatrix = []
                 Xmatrix = []
                 Ymatrix = []
                 Zmatrix = []
                 continue
 
-            # Vmatrix = np.power(np.asarray(Vmatrix),1/3)
-            labels_out = cc3d.connected_components(labels_in)
+            # VMatrix = np.power(np.asarray(VMatrix),1/3)
+            labels_out = cc3d.connected_components(labelsIn)
             N = np.max(labels_out)
             for segid in range(1, N + 1):
                 # calculate delimeter
-                Vmatrix = np.asarray(Vmatrix)
+                VMatrix = np.asarray(VMatrix)
                 alphaMatrix = np.asarray(alphaMatrix)
                 tmpMatrix = np.asarray(labels_out==segid)
-                sumtmpMatrix = np.multiply(Vmatrix, np.multiply(alphaMatrix, tmpMatrix))
+                sumtmpMatrix = np.multiply(VMatrix, np.multiply(alphaMatrix, tmpMatrix))
                 sumVolumn = np.sum(sumtmpMatrix) # sum of Volumn
                 sumVolumnDelimeter = math.pow(sumVolumn * 6 / np.pi, 1 / 3)
 
@@ -99,16 +99,16 @@ with open('cc3d.csv', 'w') as newfile:
                               + '\n')
 
             labels_out = []
-            labels_in = []
+            labelsIn = []
             alphaMatrix = []
-            Vmatrix = []
+            VMatrix = []
             Xmatrix = []
             Ymatrix = []
             Zmatrix = []
         else:
-            labels_in.append(grid_z.tolist())
+            labelsIn.append(grid_z.tolist())
             alphaMatrix.append(grid_alpha.tolist())
-            Vmatrix.append(grid_V.tolist())
+            VMatrix.append(grid_V.tolist())
             Xmatrix.append(grid_corx.tolist())
             Ymatrix.append(grid_cory.tolist())
             Zmatrix.append(grid_corz.tolist())

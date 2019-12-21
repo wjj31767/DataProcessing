@@ -23,8 +23,8 @@ yx = boxTextReadFromPandas['Points:2'].max()
 
 print(xi, xx, yi, yx)
 
-Thread_value = 0.01
-gridvalue = 1e-3
+Thread_value = 0.005
+gridvalue = 25e-6
 
 with open('cc3d.csv', 'w') as newfile:
     newfile.write("delimeter,Volumn,meanx,meany,meanz\n")

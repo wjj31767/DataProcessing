@@ -5,16 +5,20 @@ import multiprocessing
 import cc3d
 import numpy as np
 import pandas as pd
+from numba import jit
 from scipy.interpolate import griddata
 import _multiprocessing
 import os
+import numba
 GlobalList = [[]]
 XGlobalMin = 0
 XGlobalMAX = 0
 YGlobalMIN = 0
 YGlobalMAX = 0
 ThreadValue = 0.01
-GridValue = 2e-5
+GridValue = 1e-3
+
+
 def clip():
     boxTextReadFromPandas = pd.read_csv('boxTest.csv')
     global XGlobalMAX
@@ -43,6 +47,7 @@ def clip():
         else:
             GlobalList[-1].append(DividedByPointZGroup.tolist())
     del boxTextReadFromPandas
+@jit
 def cclonestep(i):
     LabelsInMatrix = []
     VolumnMatrix = []

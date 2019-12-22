@@ -5,7 +5,7 @@ import skimage
 import os
 import sys
 import matplotlib.pyplot as plt
-<<<<<<< HEAD
+
 t = np.genfromtxt('boxTest.csv',delimiter=',',skip_header=1)
 print(len(t))
 xi = t[:,6].min()
@@ -42,7 +42,7 @@ for PointZ in PointZSet:
 #         tsum+=grid_alpha[j[0],j[1]]
 #     newfile.write(str(i)+','+str(tsum)+'\n')
 # newfile.close()
-=======
+
 import pandas as pd
 # TODO: mb use pandas doing these things better. and mb I don't need set() here.
 # TODO: 1. dividing all the files by Z
@@ -93,6 +93,6 @@ for t in os.pathdir(path):
 # TODO: 2.1 can the mesh start and end part just the same ?
 # TODO: 3. merge them all
 
->>>>>>> parent of 1291aa5... need TODO3
+
 
 # prop = skimage.measure.regionprops(sh[0])

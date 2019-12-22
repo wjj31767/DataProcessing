@@ -16,9 +16,13 @@ XGlobalMAX = 0
 YGlobalMIN = 0
 YGlobalMAX = 0
 ThreadValue = 0.01
-GridValue = 1e-3
-
-
+GridValue = 1e-4
+@jit
+def npsum(x):
+    return np.sum(x)
+@jit
+def npmultiply(a,b):
+    return np.multiply(a,b)
 def clip():
     boxTextReadFromPandas = pd.read_csv('boxTest.csv')
     global XGlobalMAX
@@ -29,7 +33,6 @@ def clip():
     XGlobalMAX = boxTextReadFromPandas['Points:1'].max()
     YGlobalMIN = boxTextReadFromPandas['Points:2'].min()
     YGlobalMAX = boxTextReadFromPandas['Points:2'].max()
-    n=0
     for DividedByPointZGroup in boxTextReadFromPandas.groupby("Points:0"):
         DividedByPointZGroup = DividedByPointZGroup[1].to_numpy()
 
@@ -40,14 +43,13 @@ def clip():
         GridZ[GridZ < ThreadValue] = 0
         GridZ[GridZ >= ThreadValue] = 1
         GridZ = GridZ.astype(np.int32)
-        if np.sum(GridZ) == 0:
+        if npsum(GridZ) == 0:
             if(len(GlobalList[-1])!=0):
                 GlobalList.append([])
             continue
         else:
             GlobalList[-1].append(DividedByPointZGroup.tolist())
     del boxTextReadFromPandas
-@jit
 def cclonestep(i):
     LabelsInMatrix = []
     VolumnMatrix = []
@@ -96,17 +98,17 @@ def cclonestep(i):
         VolumnMatrix = np.asarray(VolumnMatrix)
         AlphaMatrix = np.asarray(AlphaMatrix)
         tmpMatrix = np.asarray(LabelsOutMatrix == segid)
-        sumtmpMatrix = np.multiply(VolumnMatrix, np.multiply(AlphaMatrix, tmpMatrix))
-        sumVolumn = np.sum(sumtmpMatrix)  # sum of Volumn
+        sumtmpMatrix = npmultiply(VolumnMatrix, npmultiply(AlphaMatrix, tmpMatrix))
+        sumVolumn = npsum(sumtmpMatrix)  # sum of Volumn
         sumVolumnDelimeter = math.pow(sumVolumn * 6 / np.pi, 1 / 3)
 
         # coordinate
         XMatrix = np.asarray(XMatrix)
         YMatrix = np.asarray(YMatrix)
         ZMatrix = np.asarray(ZMatrix)
-        MeanX = np.sum(np.multiply(XMatrix, sumtmpMatrix)) / sumVolumn
-        MeanY = np.sum(np.multiply(YMatrix, sumtmpMatrix)) / sumVolumn
-        MeanZ = np.sum(np.multiply(ZMatrix, sumtmpMatrix)) / sumVolumn
+        MeanX = npsum(npmultiply(XMatrix, sumtmpMatrix)) / sumVolumn
+        MeanY = npsum(npmultiply(YMatrix, sumtmpMatrix)) / sumVolumn
+        MeanZ = npsum(npmultiply(ZMatrix, sumtmpMatrix)) / sumVolumn
         # write into file
         Tmp4SaveList.append([sumVolumnDelimeter,sumVolumn,MeanX,MeanY,MeanZ])
     np.savetxt(FilePath, Tmp4SaveList)
@@ -130,6 +132,7 @@ def merge():
         tmp +=t
     np.savetxt('cc3d.csv',tmp,header="delimeter,volumn,meanx,meany,meanz",delimiter=",",comments="")
 
+
 if __name__ == '__main__':
     tmppath = r'ccl4merge'
     if not os.path.exists(tmppath):
@@ -138,7 +141,9 @@ if __name__ == '__main__':
         dir_path = os.path.join(tmppath, i)
         os.remove(dir_path)
     print("start",datetime.datetime.now())
+
     clip()
+
     print("clipend",datetime.datetime.now())
     ccl()
     print("cclend",datetime.datetime.now())

@@ -14,9 +14,11 @@ XGlobalMAX = 0
 YGlobalMIN = 0
 YGlobalMAX = 0
 ThreadValue = 0.01
-GridValue = 1e-4
+GridValue = 5e-5
 def clip():
-    boxTextReadFromPandas = pd.read_csv('boxTest.csv')
+    boxTextReadFromPandas = pd.read_csv('6barFine.csv')
+    boxTextReadFromPandas = boxTextReadFromPandas[(0.02<=boxTextReadFromPandas['Points:0'])&(boxTextReadFromPandas["Points:0"]<=0.05)]
+    print(boxTextReadFromPandas)
     global XGlobalMAX
     global XGlobalMin
     global YGlobalMIN
@@ -30,7 +32,7 @@ def clip():
     for num,DividedByPointZGroup in enumerate(Groupby):
         DividedByPointZGroup = DividedByPointZGroup[1].to_numpy()
 
-        Points = DividedByPointZGroup[:, [6, 7]]
+        Points = DividedByPointZGroup[:, [4, 5]]
         AlphaLiquid = DividedByPointZGroup[:, 1]
         GridX, GridY = np.mgrid[XGlobalMin:XGlobalMAX:GridValue, YGlobalMIN:YGlobalMAX:GridValue]
         GridZ = griddata(Points, AlphaLiquid, (GridX, GridY), method='nearest')
@@ -57,12 +59,12 @@ def cclonestep(i):
     global GlobalList
     for DividedByPointZGroup in GlobalList[i]:
         DividedByPointZGroup = np.asarray(DividedByPointZGroup)
-        Points = DividedByPointZGroup[:, [6, 7]]
+        Points = DividedByPointZGroup[:, [4, 5]]
         AlphaLiquid = DividedByPointZGroup[:, 1]
         V = DividedByPointZGroup[:, 0]
-        X = DividedByPointZGroup[:, 6]
-        Y = DividedByPointZGroup[:, 7]
-        Z = DividedByPointZGroup[:, 5]
+        X = DividedByPointZGroup[:, 4]
+        Y = DividedByPointZGroup[:, 5]
+        Z = DividedByPointZGroup[:, 3]
         global XGlobalMAX
         global XGlobalMin
         global YGlobalMIN

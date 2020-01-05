@@ -13,7 +13,7 @@ YMatrix = []
 ZMatrix = []
 print(datetime.datetime.now())
 
-boxTextReadFromPandas = pd.read_csv('boxTest.csv')
+boxTextReadFromPandas = pd.read_csv('6barFine.csv')
 
 XGlobalMin = boxTextReadFromPandas['Points:1'].min()
 XGlobalMAX = boxTextReadFromPandas['Points:1'].max()
@@ -23,7 +23,7 @@ YGlobalMAX = boxTextReadFromPandas['Points:2'].max()
 print(XGlobalMin, XGlobalMAX, YGlobalMIN, YGlobalMAX)
 
 ThreadValue = 0.01
-GridValue = 5e-5
+GridValue = 1e-4
 
 with open('cc3d.csv', 'w') as NewFile:
     NewFile.write("delimeter,Volumn,MeanX,MeanY,MeanZ\n")
@@ -34,12 +34,12 @@ with open('cc3d.csv', 'w') as NewFile:
         # print(num,DividedByPointZGroup[0])
         DividedByPointZGroup = DividedByPointZGroup[1].to_numpy()
 
-        Points = DividedByPointZGroup[:, [6, 7]]
+        Points = DividedByPointZGroup[:, [4, 5]]
         AlphaLiquid = DividedByPointZGroup[:, 1]
         V = DividedByPointZGroup[:, 0]
-        X = DividedByPointZGroup[:, 6]
-        Y = DividedByPointZGroup[:, 7]
-        Z = DividedByPointZGroup[:, 5]
+        X = DividedByPointZGroup[:, 4]
+        Y = DividedByPointZGroup[:, 5]
+        Z = DividedByPointZGroup[:, 3]
         GridX, GridY = np.mgrid[XGlobalMin:XGlobalMAX:GridValue, YGlobalMIN:YGlobalMAX:GridValue]
         GridZ = griddata(Points, AlphaLiquid, (GridX, GridY), method='nearest')
         GridAlpha = griddata(Points, AlphaLiquid, (GridX, GridY), method='nearest')

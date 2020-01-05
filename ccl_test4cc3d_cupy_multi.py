@@ -6,15 +6,15 @@ import cc3d
 import numpy as np
 import pandas as pd
 from scipy.interpolate import griddata
-import _multiprocessing
 import os
+import cupy as cp
 GlobalList = [[]]
 XGlobalMin = 0
 XGlobalMAX = 0
 YGlobalMIN = 0
 YGlobalMAX = 0
 ThreadValue = 0.01
-GridValue = 1e-4
+GridValue = 5e-5
 def clip():
     boxTextReadFromPandas = pd.read_csv('boxTest.csv')
     global XGlobalMAX
@@ -91,20 +91,20 @@ def cclonestep(i):
     Tmp4SaveList = []
     for segid in range(1, N + 1):
         # calculate delimeter
-        VolumnMatrix = np.asarray(VolumnMatrix)
-        AlphaMatrix = np.asarray(AlphaMatrix)
-        tmpMatrix = np.asarray(LabelsOutMatrix == segid)
-        sumtmpMatrix = np.multiply(VolumnMatrix, np.multiply(AlphaMatrix, tmpMatrix))
-        sumVolumn = np.sum(sumtmpMatrix)  # sum of Volumn
-        sumVolumnDelimeter = math.pow(sumVolumn * 6 / np.pi, 1 / 3)
+        VolumnMatrix = cp.asarray(VolumnMatrix)
+        AlphaMatrix = cp.asarray(AlphaMatrix)
+        tmpMatrix = cp.asarray(LabelsOutMatrix == segid)
+        sumtmpMatrix = cp.multiply(VolumnMatrix, cp.multiply(AlphaMatrix, tmpMatrix))
+        sumVolumn = cp.sum(sumtmpMatrix)  # sum of Volumn
+        sumVolumnDelimeter = math.pow(sumVolumn * 6 / cp.pi, 1 / 3)
 
         # coordinate
-        XMatrix = np.asarray(XMatrix)
-        YMatrix = np.asarray(YMatrix)
-        ZMatrix = np.asarray(ZMatrix)
-        MeanX = np.sum(np.multiply(XMatrix, sumtmpMatrix)) / sumVolumn
-        MeanY = np.sum(np.multiply(YMatrix, sumtmpMatrix)) / sumVolumn
-        MeanZ = np.sum(np.multiply(ZMatrix, sumtmpMatrix)) / sumVolumn
+        XMatrix = cp.asarray(XMatrix)
+        YMatrix = cp.asarray(YMatrix)
+        ZMatrix = cp.asarray(ZMatrix)
+        MeanX = cp.sum(cp.multiply(XMatrix, sumtmpMatrix)) / sumVolumn
+        MeanY = cp.sum(cp.multiply(YMatrix, sumtmpMatrix)) / sumVolumn
+        MeanZ = cp.sum(cp.multiply(ZMatrix, sumtmpMatrix)) / sumVolumn
         # write into file
         Tmp4SaveList.append([sumVolumnDelimeter,sumVolumn,MeanX,MeanY,MeanZ])
     np.savetxt(FilePath, Tmp4SaveList)

@@ -14,8 +14,7 @@ Ymatrix = []
 Zmatrix = []
 print(datetime.datetime.now())
 
-boxTextReadFromPandas = pd.read_csv('boxTest.csv')
-
+boxTextReadFromPandas = pd.read_csv('6barFine.csv')
 xi = boxTextReadFromPandas['Points:1'].min()
 xx = boxTextReadFromPandas['Points:1'].max()
 yi = boxTextReadFromPandas['Points:2'].min()
@@ -24,23 +23,23 @@ yx = boxTextReadFromPandas['Points:2'].max()
 print(xi, xx, yi, yx)
 
 Thread_value = 0.005
-gridvalue = 25e-6
+gridvalue = 1e-4
 
 with open('cc3d.csv', 'w') as newfile:
     newfile.write("delimeter,Volumn,meanx,meany,meanz\n")
 
-    n = 0
-
-    for num, partdividedbyPointZ in enumerate(boxTextReadFromPandas.groupby("Points:0")):
+    GroupBy = boxTextReadFromPandas.groupby("Points:0")
+    GroupNum = len(GroupBy)
+    for num, partdividedbyPointZ in enumerate(GroupBy):
         # print(num,partdividedbyPointZ[0])
         partdividedbyPointZ = partdividedbyPointZ[1].to_numpy()
 
-        points = partdividedbyPointZ[:, [6, 7]]
+        points = partdividedbyPointZ[:, [4,5]]
         alpah_liquid = partdividedbyPointZ[:, 1]
         V = partdividedbyPointZ[:, 0]
-        X = partdividedbyPointZ[:, 6]
-        Y = partdividedbyPointZ[:, 7]
-        Z = partdividedbyPointZ[:, 5]
+        X = partdividedbyPointZ[:, 4]
+        Y = partdividedbyPointZ[:, 5]
+        Z = partdividedbyPointZ[:, 3]
         grid_x, grid_y = np.mgrid[xi:xx:gridvalue, yi:yx:gridvalue]
         grid_z = griddata(points, alpah_liquid, (grid_x, grid_y), method='nearest')
         grid_alpha = griddata(points, alpah_liquid, (grid_x, grid_y), method='nearest')
@@ -53,11 +52,9 @@ with open('cc3d.csv', 'w') as newfile:
         grid_z = grid_z.astype(np.int32)
 
         if num % 1000 == 0:
-            print(datetime.datetime.now(), (num + 1) / 14297)
+            print(datetime.datetime.now(), (num + 1) / GroupNum)
         grid_z = cp.asarray(grid_z)
         if cp.sum(grid_z) == 0:
-            print(n)
-            n += 1
 
             labels_in = np.asarray(labels_in)
 

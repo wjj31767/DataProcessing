@@ -14,7 +14,7 @@ XGlobalMAX = 0
 YGlobalMIN = 0
 YGlobalMAX = 0
 ThreadValue = 0.005
-GridValue = 2.5e-5
+GridValue = 1.25e-5
 def clip():
     CSVFile = pd.read_csv('6barFine.csv')
     CSVFile = CSVFile[(0.012<=CSVFile['Points:0'])&(CSVFile["Points:0"]<=0.015)]
@@ -110,7 +110,6 @@ def cclonestep(i):
         # write into file
         Tmp4SaveList.append([sumVolumnDelimeter,sumVolumn,MeanX,MeanY,MeanZ])
     np.savetxt(FilePath, Tmp4SaveList)
-	GlobalList[i]=[]
     print(i/len(GlobalList),"\t",datetime.datetime.now())
 def ccl():
     pool = multiprocessing.Pool(15)
@@ -129,7 +128,7 @@ def merge():
         else:
             t=t.tolist()
         tmp +=t
-    np.savetxt('cc3d.csv',tmp,header="delimeter,volumn,meanx,meany,meanz",delimiter=",",comments="")
+    np.savetxt('cc3dnew.csv',tmp,header="delimeter,volumn,meanx,meany,meanz",delimiter=",",comments="")
 
 if __name__ == '__main__':
     tmppath = r'ccl4merge'

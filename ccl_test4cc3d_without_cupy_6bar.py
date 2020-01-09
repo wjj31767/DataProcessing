@@ -14,7 +14,8 @@ ZMatrix = []
 print(datetime.datetime.now())
 
 boxTextReadFromPandas = pd.read_csv('6barFine.csv')
-
+boxTextReadFromPandas = boxTextReadFromPandas[
+    (0.012 <= boxTextReadFromPandas['Points:0']) & (boxTextReadFromPandas["Points:0"] <= 0.015)]
 XGlobalMin = boxTextReadFromPandas['Points:1'].min()
 XGlobalMAX = boxTextReadFromPandas['Points:1'].max()
 YGlobalMIN = boxTextReadFromPandas['Points:2'].min()
@@ -22,8 +23,8 @@ YGlobalMAX = boxTextReadFromPandas['Points:2'].max()
 
 print(XGlobalMin, XGlobalMAX, YGlobalMIN, YGlobalMAX)
 
-ThreadValue = 0.01
-GridValue = 1e-4
+ThreadValue = 0.005
+GridValue = 1.25e-5
 
 with open('cc3d.csv', 'w') as NewFile:
     NewFile.write("delimeter,Volumn,MeanX,MeanY,MeanZ\n")
@@ -55,7 +56,7 @@ with open('cc3d.csv', 'w') as NewFile:
             print(datetime.datetime.now(), (num + 1) /len(boxTextReadFromPandas.groupby("Points:0")) )
         GridZ = np.asarray(GridZ)
         if np.sum(GridZ) == 0:
-            print(n)
+
             n += 1
 
             LabelsInMatrix = np.asarray(LabelsInMatrix)
@@ -68,7 +69,7 @@ with open('cc3d.csv', 'w') as NewFile:
                 YMatrix = []
                 ZMatrix = []
                 continue
-
+            print(n,datetime.datetime.now())
             # VolumnMatrix = np.power(np.asarray(VolumnMatrix),1/3)
             LabelsOutMatrix = cc3d.connected_components(LabelsInMatrix)
             N = np.max(LabelsOutMatrix)

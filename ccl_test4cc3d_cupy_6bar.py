@@ -27,7 +27,7 @@ gridvalue = 1e-4
 
 with open('cc3d.csv', 'w') as newfile:
     newfile.write("delimeter,Volumn,meanx,meany,meanz\n")
-
+    
     GroupBy = boxTextReadFromPandas.groupby("Points:0")
     GroupNum = len(GroupBy)
     for num, partdividedbyPointZ in enumerate(GroupBy):

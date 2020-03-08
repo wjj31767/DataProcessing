@@ -4,11 +4,11 @@ import plotly
 import plotly.graph_objs as go
 
 data = pd.read_csv('cc3d.csv')
-datasize = data["delimeter"] * (10 ** 4)
+datasize = data["delimeter"] * (10 ** 3)
 datacolor = data["delimeter"]
-fig1 = go.Scatter3d(x=data["meanx"],
-                    y=data["meany"],
-                    z=data["meanz"],
+fig1 = go.Scatter3d(x=data["MeanX"],
+                    y=data["MeanY"],
+                    z=data["MeanZ"],
                     marker=dict(opacity=0.9,
                                 reversescale=True,
 

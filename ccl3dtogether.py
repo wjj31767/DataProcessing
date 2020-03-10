@@ -34,31 +34,33 @@ except:
 argparse part
 '''
 parser = argparse.ArgumentParser()
-parser.add_argument('--mode',type=int,default=1,help='0 for all 3 steps: which can get the file and generate cc3d'
-                                                     '1 for just generate 3d plot file from temp file, like cc3d.csv'
+parser.add_argument('--mode',type=int,default=0,help='0(default) for all 3 steps: which can get the file and generate cc3d\n'
+                                                     '1 for just generate 3d plot file from temp file, like cc3d.csv\n'
                                                      '2 for just generate histograph from temp file, like cc3d.csv')
-parser.add_argument('--path', type=str, help='path of csv file',default='boxTest.csv')
-parser.add_argument('--respath',type=str,default='cc3d.csv',help='path for result file path')
+parser.add_argument('--path', type=str, help='path of csv file, default is boxTest.csv',default='boxTest.csv')
+parser.add_argument('--respath',type=str,default='cc3d',help='path for result file path, default is cc3d, which will be seted its end with csv')
 parser.add_argument('--png',type=str,default='histgraph',help='path for result histograph path, will be seted its end as .png')
 parser.add_argument('--html',type=str,default='3DPlot',help='path for result 3D plot path, will be seted its end as .html')
-parser.add_argument('--thresholdtype',type=int,default=1,help='1 for just 1 threshold'
+parser.add_argument('--thresholdtype',type=int,default=1,help='1(default) for just 1 threshold\n'
                                                              '2 for 2 threshold')
-parser.add_argument('--threshold',type=float,default=0.005,help="correspond to one threshold type")
+parser.add_argument('--threshold',type=float,default=0.005,help="correspond to one threshold type,default is 0.005")
 parser.add_argument('--thresholdupper',type=float,default=0.012,help="correspond to top of two threshold type")
 parser.add_argument('--thresholdlower',type=float,default=0.015,help="correspond to bottom of two threshold type")
-parser.add_argument('--x',type=int,default=6,help="Point:1")
-parser.add_argument('--y',type=int,default=7,help="Point:2")
-parser.add_argument('--z',type=int,default=5,help="Point:0")
-parser.add_argument('--v',type=int,default=0,help="Volumn")
-parser.add_argument('--alpha',type=int,default=1,help="alphaLiquid")
-parser.add_argument('--grid',type=float,default=1e-3,help="grid value")
-parser.add_argument('--needrange',type=int,default=0,help='0 for all the file'
-                                                          '1 for expected range'
+parser.add_argument('--x',type=int,default=6,help="Point:1, default is column 6")
+parser.add_argument('--y',type=int,default=7,help="Point:2, default is column 7")
+parser.add_argument('--z',type=int,default=5,help="Point:0, default is column 5")
+parser.add_argument('--v',type=int,default=0,help="Volumn, default is column 0")
+parser.add_argument('--alpha',type=int,default=1,help="alphaLiquid, default is column 1")
+parser.add_argument('--grid',type=float,default=1e-3,help="grid value, default is 1e-3")
+parser.add_argument('--needrange',type=int,default=0,help='0(default) for all range of file\n'
+                                                          '1 for expected range\n'
                                                           '2 for expected divided parts')
 parser.add_argument('--parts',type=int,default=5,help='correspond to need range part 2:'
                                                       'it can divided the whole range into equal part')
 parser.add_argument('--rangeupper',type=float,default=0.0,help='upper bound of expected range')
 parser.add_argument('--rangelower',type=float,default=1.0,help='bottom bound of expected range')
+parser.add_argument('--hbin',type=int,default=100,help='desired sum of bin, default is 100')
+parser.add_argument('--pratio',type=int,default=5,help='3d point scale ratio for 3d plot, default is 5, sometimes 4 is better')
 args = parser.parse_args()
 if args.needrange==1:
     if args.rangeupper<args.rangelower:
@@ -78,7 +80,7 @@ def calculate(FILE,fileName):
     YMatrix = []
     ZMatrix = []
     print(datetime.datetime.now())
-    with open(fileName, 'w') as NewFile:
+    with open(fileName+'.csv', 'w') as NewFile:
         NewFile.write("diameter,Volumn,MeanX,MeanY,MeanZ\n")
         n = 0
         for num, DividedByPointZGroup in enumerate(tqdm(FILE.groupby("Points:0"))):
@@ -199,8 +201,8 @@ def draw3D(readPath,htmlName):
     input: readPath is result file name of caculate part
     output: 3d plot file with '.html'
     '''
-    data = pd.read_csv(readPath)
-    datasize = data["diameter"] * (10 ** 5)  # grid 小的时候 5， 大的时候4
+    data = pd.read_csv(readPath+'.csv')
+    datasize = data["diameter"] * (10**args.pratio)  # grid 小的时候 5， 大的时候4
     datacolor = data["diameter"]
     fig1 = go.Scatter3d(x=data["MeanX"],
                         y=data["MeanY"],
@@ -237,12 +239,12 @@ def drawHistograph(readPath,pngName):
     input: readPath is result file name of caculate part
     output: histo graph file end with '.png'
     '''
-    drawforhist = np.genfromtxt(readPath, delimiter=',', skip_header=1)
+    drawforhist = np.genfromtxt(readPath+'.csv', delimiter=',', skip_header=1)
     drawforhist = drawforhist[:, 0]
     mi = drawforhist.min()
     mx = drawforhist.max()
     print(mi, mx)
-    binnum = 100
+    binnum = args.hbin
     bin_edges = np.arange(mi, mx, (mx - mi) / binnum)
     plt.hist(drawforhist, bins=bin_edges, color='red')
     plt.savefig(pngName + '.png')

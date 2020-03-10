@@ -74,109 +74,108 @@ if args.needrange == 1:
 
 
 # main calculate part
-def calculate(FILE, fileName):
+def calculate(data, out_name):
     '''
-    input: FILE is input csv data
-            fileName is desired output name
+    input: data is input csv data
+            out_name is desired output name
     函数总体思路是按照每个切片的和来判断三维连通域是否中断，如果中断那么计算之前的连通域
     '''
-    LabelsInMatrix = []
-    VolumnMatrix = []
-    AlphaMatrix = []
-    XMatrix = []
-    YMatrix = []
-    ZMatrix = []
+    labelsin_matrix = []
+    volumn_matrix = []
+    alpha_matrix = []
+    x_matrix = []
+    y_matrix = []
+    z_matrix = []
     print(datetime.datetime.now())
-    with open(fileName + '.csv', 'w') as NewFile:
-        NewFile.write("diameter,Volumn,MeanX,MeanY,MeanZ\n")
-        print(FILE.groupby("Points:0"))
-        for DividedByPointZGroup in tqdm(FILE.groupby("Points:0")):
-            DividedByPointZGroup = DividedByPointZGroup[1].to_numpy()
+    with open(out_name + '.csv', 'w') as newfile:
+        newfile.write("diameter,Volumn,MeanX,MeanY,MeanZ\n")
+        for groupby_part in tqdm(data.groupby("Points:0")):
+            groupby_part = groupby_part[1].to_numpy()
             # XYZ 的坐标对应Points： 0，1，2 Points [4,5] 对应的Points： 1 2
-            Points = DividedByPointZGroup[:, [args.x, args.y]]
-            AlphaLiquid = DividedByPointZGroup[:, args.alpha]
-            V = DividedByPointZGroup[:, args.v]
-            X = DividedByPointZGroup[:, args.x]
-            Y = DividedByPointZGroup[:, args.y]
-            Z = DividedByPointZGroup[:, args.z]
-            GridX, GridY = np.mgrid[XGlobalMin:XGlobalMAX:args.grid, YGlobalMIN:YGlobalMAX:args.grid]
-            GridZ = griddata(Points, AlphaLiquid, (GridX, GridY), method='nearest')
-            GridAlpha = griddata(Points, AlphaLiquid, (GridX, GridY), method='nearest')
-            GridVolumn = griddata(Points, V, (GridX, GridY), method='nearest')
-            GridCoordinateX = griddata(Points, X, (GridX, GridY), method='nearest')
-            GridCoordinateY = griddata(Points, Y, (GridX, GridY), method='nearest')
-            GridCoordinateZ = griddata(Points, Z, (GridX, GridY), method='nearest')
+            Points = groupby_part[:, [args.x, args.y]]
+            AlphaLiquid = groupby_part[:, args.alpha]
+            v = groupby_part[:, args.v]
+            x = groupby_part[:, args.x]
+            y = groupby_part[:, args.y]
+            z = groupby_part[:, args.z]
+            gridx, gridy = np.mgrid[XGlobalMin:XGlobalMAX:args.grid, YGlobalMIN:YGlobalMAX:args.grid]
+            gridz = griddata(Points, AlphaLiquid, (gridx, gridy), method='nearest')
+            gridalpha = griddata(Points, AlphaLiquid, (gridx, gridy), method='nearest')
+            gridvolumn = griddata(Points, v, (gridx, gridy), method='nearest')
+            gridcoordinatex = griddata(Points, x, (gridx, gridy), method='nearest')
+            gridcoordinatey = griddata(Points, y, (gridx, gridy), method='nearest')
+            gridcoordinatez = griddata(Points, z, (gridx, gridy), method='nearest')
             if args.thresholdtype == 1:
-                GridZ[GridZ < args.threshold] = 0
-                GridZ[GridZ >= args.threshold] = 1
+                gridz[gridz < args.threshold] = 0
+                gridz[gridz >= args.threshold] = 1
             elif args.thresholdtype == 2:
-                GridZ[args.thresholdlower <= GridZ <= args.thresholdupper] = 1
-                GridZ[GridZ < args.thresholdlower & GridZ > args.thresholdupper] = 0
-            GridZ = GridZ.astype(np.int32)
-            GridZ = np.asarray(GridZ)
-            if np.sum(GridZ) == 0:
-                LabelsInMatrix = np.asarray(LabelsInMatrix)
-                if np.sum(LabelsInMatrix) == 0:
-                    LabelsInMatrix = []
-                    VolumnMatrix = []
-                    AlphaMatrix = []
-                    XMatrix = []
-                    YMatrix = []
-                    ZMatrix = []
+                gridz[args.thresholdlower <= gridz <= args.thresholdupper] = 1
+                gridz[gridz < args.thresholdlower & gridz > args.thresholdupper] = 0
+            gridz = gridz.astype(np.int32)
+            gridz = np.asarray(gridz)
+            if np.sum(gridz) == 0:
+                labelsin_matrix = np.asarray(labelsin_matrix)
+                if np.sum(labelsin_matrix) == 0:
+                    labelsin_matrix = []
+                    volumn_matrix = []
+                    alpha_matrix = []
+                    x_matrix = []
+                    y_matrix = []
+                    z_matrix = []
                     continue
 
-                LabelsOutMatrix = cc3d.connected_components(LabelsInMatrix)
-                N = np.max(LabelsOutMatrix)
+                labelsout_matrix = cc3d.connected_components(labelsin_matrix)
+                N = np.max(labelsout_matrix)
                 for segid in range(1, N + 1):
                     # calculate diameter
-                    VolumnMatrix = np.asarray(VolumnMatrix)
-                    AlphaMatrix = np.asarray(AlphaMatrix)
-                    tmpMatrix = np.asarray(LabelsOutMatrix == segid)
-                    sumtmpMatrix = np.multiply(VolumnMatrix, np.multiply(AlphaMatrix, tmpMatrix))
+                    volumn_matrix = np.asarray(volumn_matrix)
+                    alpha_matrix = np.asarray(alpha_matrix)
+                    tmpMatrix = np.asarray(labelsout_matrix == segid)
+                    sumtmpMatrix = np.multiply(volumn_matrix, np.multiply(alpha_matrix, tmpMatrix))
                     sumVolumn = np.sum(sumtmpMatrix)  # sum of Volumn
                     sumVolumnDiameter = math.pow(sumVolumn * 6 / np.pi, 1 / 3)
 
                     # coordinate
-                    XMatrix = np.asarray(XMatrix)
-                    YMatrix = np.asarray(YMatrix)
-                    ZMatrix = np.asarray(ZMatrix)
-                    MeanX = np.sum(np.multiply(XMatrix, sumtmpMatrix)) / sumVolumn
-                    MeanY = np.sum(np.multiply(YMatrix, sumtmpMatrix)) / sumVolumn
-                    MeanZ = np.sum(np.multiply(ZMatrix, sumtmpMatrix)) / sumVolumn
+                    x_matrix = np.asarray(x_matrix)
+                    y_matrix = np.asarray(y_matrix)
+                    z_matrix = np.asarray(z_matrix)
+                    MeanX = np.sum(np.multiply(x_matrix, sumtmpMatrix)) / sumVolumn
+                    MeanY = np.sum(np.multiply(y_matrix, sumtmpMatrix)) / sumVolumn
+                    MeanZ = np.sum(np.multiply(z_matrix, sumtmpMatrix)) / sumVolumn
                     # write into file
-                    NewFile.write(str(sumVolumnDiameter)
+                    newfile.write(str(sumVolumnDiameter)
                                   + ',' + str(sumVolumn)
                                   + ',' + str(MeanX)
                                   + ',' + str(MeanY)
                                   + ',' + str(MeanZ)
                                   + '\n')
 
-                LabelsOutMatrix = []
-                LabelsInMatrix = []
-                AlphaMatrix = []
-                VolumnMatrix = []
-                XMatrix = []
-                YMatrix = []
-                ZMatrix = []
+                labelsout_matrix = []
+                labelsin_matrix = []
+                alpha_matrix = []
+                volumn_matrix = []
+                x_matrix = []
+                y_matrix = []
+                z_matrix = []
             else:
-                LabelsInMatrix.append(GridZ.tolist())
-                AlphaMatrix.append(GridAlpha.tolist())
-                VolumnMatrix.append(GridVolumn.tolist())
-                XMatrix.append(GridCoordinateX.tolist())
-                YMatrix.append(GridCoordinateY.tolist())
-                ZMatrix.append(GridCoordinateZ.tolist())
+                labelsin_matrix.append(gridz.tolist())
+                alpha_matrix.append(gridalpha.tolist())
+                volumn_matrix.append(gridvolumn.tolist())
+                x_matrix.append(gridcoordinatex.tolist())
+                y_matrix.append(gridcoordinatey.tolist())
+                z_matrix.append(gridcoordinatez.tolist())
 
     print(datetime.datetime.now())
 
 
 if args.mode == 0:
-    CSVFILE = pd.read_csv(args.path)
-    XGlobalMin = CSVFILE['Points:1'].min()
-    XGlobalMAX = CSVFILE['Points:1'].max()
-    YGlobalMIN = CSVFILE['Points:2'].min()
-    YGlobalMAX = CSVFILE['Points:2'].max()
-    ZGlobalMIN = CSVFILE['Points:0'].min()
-    ZGlobalMAX = CSVFILE['Points:0'].max()
+    csv_file = pd.read_csv(args.path)
+    XGlobalMin = csv_file['Points:1'].min()
+    XGlobalMAX = csv_file['Points:1'].max()
+    YGlobalMIN = csv_file['Points:2'].min()
+    YGlobalMAX = csv_file['Points:2'].max()
+    ZGlobalMIN = csv_file['Points:0'].min()
+    ZGlobalMAX = csv_file['Points:0'].max()
     if args.needrange == 1:
         if args.rangeupper <= ZGlobalMIN or args.rangelower >= ZGlobalMAX:
             raise Exception('error setting rangeupper or rangelower,'
@@ -184,19 +183,19 @@ if args.mode == 0:
                             'rangelower is %f,'
                             'ZGlobalMin is %f,'
                             'ZGlobalMax is %f,' % (args.rangeupper, args.rangelower, ZGlobalMIN, ZGlobalMAX))
-        CSVFILE = CSVFILE[
-            (args.rangelower <= CSVFILE['Points:0']) & (CSVFILE["Points:0"] <= args.rangeupper)]
-        calculate(CSVFILE, args.respath)
+        csv_file = csv_file[
+            (args.rangelower <= csv_file['Points:0']) & (csv_file["Points:0"] <= args.rangeupper)]
+        calculate(csv_file, args.respath)
     elif args.needrange == 2:
         SubZ = ZGlobalMAX - ZGlobalMIN
         if SubZ <= 0:
             raise Exception("error Point:0", SubZ)
         for i in range(args.parts):
-            calculate(CSVFILE[((i * SubZ / args.parts + ZGlobalMIN) <= CSVFILE['Points:0']) & (
-                        CSVFILE["Points:0"] <= ((i + 1) * SubZ / args.parts + ZGlobalMIN))],
+            calculate(csv_file[((i * SubZ / args.parts + ZGlobalMIN) <= csv_file['Points:0']) & (
+                        csv_file["Points:0"] <= ((i + 1) * SubZ / args.parts + ZGlobalMIN))],
                       args.respath + '_' + str(i))
     else:
-        calculate(CSVFILE, args.respath)
+        calculate(csv_file, args.respath)
     print(XGlobalMin, XGlobalMAX, YGlobalMIN, YGlobalMAX, ZGlobalMIN, ZGlobalMAX)
 
 

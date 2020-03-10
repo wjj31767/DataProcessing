@@ -24,7 +24,7 @@ YGlobalMAX = boxTextReadFromPandas['Points:2'].max()
 print(XGlobalMin, XGlobalMAX, YGlobalMIN, YGlobalMAX)
 
 ThreadValue = 0.005
-GridValue = 1.25e-5
+GridValue = 1e-3
 
 with open('cc3d.csv', 'w') as NewFile:
     NewFile.write("delimeter,Volumn,MeanX,MeanY,MeanZ\n")
